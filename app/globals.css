@@ -12,16 +12,16 @@
     --popover-foreground: 0 0% 0%;
     --primary: 0 0% 0%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
+    --secondary: 0 0% 95%;
     --secondary-foreground: 0 0% 0%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 0 0% 96%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 0 0% 85%;
     --accent-foreground: 0 0% 0%;
-    --destructive: 0 84% 60%;
+    --destructive: 0 0% 20%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
+    --border: 0 0% 80%;
+    --input: 0 0% 85%;
     --ring: 0 0% 0%;
     --radius: 1rem;
   }
@@ -180,14 +180,14 @@
 
 .glitch-text::before {
   left: 2px;
-  text-shadow: -1px 0 #ff00c1;
+  text-shadow: -1px 0 rgba(0, 0, 0, 0.3);
   clip: rect(44px, 450px, 56px, 0);
   animation: glitch-anim-1 5s linear infinite alternate-reverse;
 }
 
 .glitch-text::after {
   left: -2px;
-  text-shadow: -1px 0 #00fff9;
+  text-shadow: -1px 0 rgba(0, 0, 0, 0.2);
   clip: rect(44px, 450px, 56px, 0);
   animation: glitch-anim-2 5s linear infinite alternate-reverse;
 }
@@ -378,7 +378,7 @@
 /* FWA-worthy animations */
 /* Improved text gradient animation */
 .text-gradient {
-  background: linear-gradient(90deg, #fff 0%, hsl(var(--primary)) 50%, #fff 100%);
+  background: linear-gradient(90deg, #000 0%, #555 50%, #000 100%);
   background-size: 200% auto;
   color: transparent;
   background-clip: text;
@@ -727,14 +727,14 @@ footer {
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.37);
+  box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.37);
 }
 
 .button-2025:hover {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px 0 rgba(31, 38, 135, 0.45);
+  box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.45);
 }
 
 .button-2025::after {
@@ -842,4 +842,105 @@ footer {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
+}
+
+/* Glass Morphism Effects */
+.glass-blur {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.glass-blur:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.2);
+}
+
+.glass-blur-strong {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+.glass-blur-subtle {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Tab System Styles */
+.tab-container {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.tab-header {
+  display: flex;
+  background: rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-button {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.tab-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tab-button.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+}
+
+.tab-content {
+  padding: 1.5rem;
+  min-height: 200px;
+}
+
+.expandable-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.expandable-content.expanded {
+  max-height: 1000px;
+  opacity: 1;
 }

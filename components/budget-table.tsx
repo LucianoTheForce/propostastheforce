@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, memo, useRef } from 'react'
 import { budgetData as defaultBudgetData } from '@/lib/budget-data'
 import { ChevronDown, ChevronRight, Edit3, Eye, Save, RefreshCw, AlertCircle, Lock, GripVertical, Bot, Check, Square } from 'lucide-react'
 import {
@@ -37,7 +37,6 @@ interface BudgetItem {
   unitPrice: number
   supplier: string
   invoice: string
-  billingType: string
   notes?: string
 }
 
@@ -64,6 +63,10 @@ interface BudgetData {
     criacao?: number
     honorarios?: number
     impostos?: number
+    planejamentoPercent?: number
+    criacaoPercent?: number
+    honorariosPercent?: number
+    impostosPercent?: number
   }
   summary: {
     totalItems: number
@@ -73,7 +76,97 @@ interface BudgetData {
     lastUpdated: string
   }
   condicoesComerciais?: string[]
+  clientViewMode?: 'complete' | 'category' | 'total'
+  percentages?: {
+    planejamento: number
+    criacao: number
+    honorarios: number
+    impostos: number
+  }
 }
+
+// Componente com debounce para evitar re-renderizações e perda de foco
+const DebouncedInput = memo(({ 
+  type = "text", 
+  value, 
+  onChange, 
+  className, 
+  placeholder,
+  rows,
+  debounceMs = 300,
+  ...props 
+}: {
+  type?: string
+  value: string | number
+  onChange: (value: string | number) => void
+  className?: string
+  placeholder?: string
+  rows?: number
+  debounceMs?: number
+  [key: string]: unknown
+}) => {
+  const [localValue, setLocalValue] = useState(value)
+  const timeoutRef = useRef<NodeJS.Timeout>()
+
+  // Atualizar valor local quando valor externo muda
+  useEffect(() => {
+    setLocalValue(value)
+  }, [value])
+
+  // Debounce da atualização do valor externo
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const newValue = e.target.value
+    setLocalValue(newValue)
+    
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+    
+    timeoutRef.current = setTimeout(() => {
+      if (type === "number") {
+        onChange(type === "number" && e.target.type === "number" ? 
+          (parseFloat(newValue) || 0) : newValue)
+      } else {
+        onChange(newValue)
+      }
+    }, debounceMs)
+  }, [onChange, debounceMs, type])
+
+  // Limpar timeout ao desmontar
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
+
+  if (type === "textarea" || rows) {
+    return (
+      <textarea
+        value={localValue}
+        onChange={handleChange}
+        className={className}
+        placeholder={placeholder}
+        rows={rows}
+        {...props}
+      />
+    )
+  }
+  
+  return (
+    <input
+      type={type}
+      value={localValue}
+      onChange={handleChange}
+      className={className}
+      placeholder={placeholder}
+      {...props}
+    />
+  )
+})
+
+DebouncedInput.displayName = 'DebouncedInput'
 
 export function BudgetTable() {
   const [editMode, setEditMode] = useState(false) // Começa em modo cliente (somente leitura)
@@ -85,7 +178,7 @@ export function BudgetTable() {
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
-  const [clientViewMode, setClientViewMode] = useState<'complete' | 'category' | 'total'>('complete')
+  const [clientViewMode, setClientViewMode] = useState<'complete' | 'category' | 'total'>('total')
   const [activeId, setActiveId] = useState<string | null>(null)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [showAIModal, setShowAIModal] = useState(false)
@@ -94,9 +187,14 @@ export function BudgetTable() {
   const [globalAIPrompt, setGlobalAIPrompt] = useState('')
   const [globalAIProcessing, setGlobalAIProcessing] = useState(false)
   const [hoveredField, setHoveredField] = useState<string | null>(null)
+  const [hoverTimeouts, setHoverTimeouts] = useState<{[key: string]: NodeJS.Timeout}>({})
+  const [percentages, setPercentages] = useState({
+    planejamento: 1.5,
+    criacao: 1.5,
+    honorarios: 10,
+    impostos: 18.06
+  })
 
-  // Opções de tipo de billing disponíveis
-  const billingTypes = ['Direto ao Cliente', 'Faturamento Direto', 'Equipe', 'Outros']
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -125,8 +223,10 @@ export function BudgetTable() {
     document.addEventListener('keydown', handleKeyDown)
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
+      // Limpar todos os timeouts ao desmontar
+      Object.values(hoverTimeouts).forEach(timeout => clearTimeout(timeout))
     }
-  }, [handleKeyDown])
+  }, [handleKeyDown, hoverTimeouts])
 
   const handlePasswordSubmit = () => {
     if (password === '7299') {
@@ -157,6 +257,14 @@ export function BudgetTable() {
       if (response.ok) {
         const data = await response.json()
         setEditableData(data)
+        // Carregar configuração de visualização se existir
+        if (data.clientViewMode) {
+          setClientViewMode(data.clientViewMode)
+        }
+        // Carregar percentagens se existirem
+        if (data.percentages) {
+          setPercentages(data.percentages)
+        }
       } else {
         console.error('Erro ao carregar dados')
         setEditableData(defaultBudgetData)
@@ -169,17 +277,24 @@ export function BudgetTable() {
     }
   }
 
-  const saveBudgetData = async () => {
+  const saveBudgetData = useCallback(async () => {
     try {
       setSaving(true)
       setSaveStatus('idle')
+      
+      // Incluir configurações de visualização nos dados salvos
+      const dataToSave = {
+        ...editableData,
+        clientViewMode,
+        percentages
+      }
       
       const response = await fetch('/api/budget', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(editableData)
+        body: JSON.stringify(dataToSave)
       })
 
       if (response.ok) {
@@ -196,7 +311,18 @@ export function BudgetTable() {
     } finally {
       setSaving(false)
     }
-  }
+  }, [editableData, clientViewMode, percentages])
+
+  // Auto-save quando clientViewMode ou percentages mudarem
+  useEffect(() => {
+    if (editableData.title) { // Só salvar se já tiver dados carregados
+      const autoSave = setTimeout(() => {
+        saveBudgetData()
+      }, 1000) // Debounce de 1 segundo
+      
+      return () => clearTimeout(autoSave)
+    }
+  }, [clientViewMode, percentages, editableData.title, saveBudgetData])
 
   const resetToOriginal = async () => {
     if (confirm('Tem certeza que deseja resetar todos os dados para os valores originais? Esta ação não pode ser desfeita.')) {
@@ -243,6 +369,32 @@ export function BudgetTable() {
     )
   }
 
+  const expandItem = (itemId: string) => {
+    // Cancelar todos os timeouts pendentes
+    Object.values(hoverTimeouts).forEach(timeout => clearTimeout(timeout))
+    setHoverTimeouts({})
+    
+    // Colapsar todos os outros itens e expandir apenas o atual
+    setExpandedItems([itemId])
+  }
+
+  const collapseItem = (itemId: string) => {
+    // Adicionar um pequeno delay antes de colapsar
+    const timeout = setTimeout(() => {
+      setExpandedItems(prev => prev.filter(id => id !== itemId))
+      setHoverTimeouts(prev => {
+        const newTimeouts = { ...prev }
+        delete newTimeouts[itemId]
+        return newTimeouts
+      })
+    }, 150) // 150ms de delay
+    
+    setHoverTimeouts(prev => ({
+      ...prev,
+      [itemId]: timeout
+    }))
+  }
+
   // Função para adicionar novo item em uma categoria
   const addNewItem = (categoryId: string) => {
     const newItem: BudgetItem = {
@@ -256,7 +408,6 @@ export function BudgetTable() {
       unitPrice: 0,
       supplier: 'Novo Fornecedor',
       invoice: 'Nova Fatura',
-      billingType: 'Direto ao Cliente',
       notes: ''
     }
 
@@ -309,40 +460,62 @@ export function BudgetTable() {
     }
   }
 
+  // Função estável para atualizar item
   const updateItem = useCallback((categoryId: string, itemId: string, field: keyof BudgetItem, value: string | number | boolean) => {
     setEditableData(prevData => {
-      const newData = { ...prevData }
-      const categoryIndex = newData.categories.findIndex(cat => cat.id === categoryId)
-      if (categoryIndex !== -1) {
-        const itemIndex = newData.categories[categoryIndex].items.findIndex(item => item.id === itemId)
-        if (itemIndex !== -1) {
-          newData.categories = [...newData.categories]
-          newData.categories[categoryIndex] = { ...newData.categories[categoryIndex] }
-          newData.categories[categoryIndex].items = [...newData.categories[categoryIndex].items]
-          newData.categories[categoryIndex].items[itemIndex] = {
-            ...newData.categories[categoryIndex].items[itemIndex],
-            [field]: value
-          }
+      // Verificar se o valor realmente mudou para evitar re-renderizações desnecessárias
+      const category = prevData.categories.find(cat => cat.id === categoryId)
+      if (!category) return prevData
+
+      const item = category.items.find(item => item.id === itemId)
+      if (!item || item[field] === value) return prevData
+
+      // Apenas atualizar se o valor realmente mudou
+      const newCategories = prevData.categories.map(cat => {
+        if (cat.id !== categoryId) return cat
+        
+        return {
+          ...cat,
+          items: cat.items.map(item => {
+            if (item.id !== itemId) return item
+            return { ...item, [field]: value }
+          })
         }
-      }
-      return newData
+      })
+
+      return { ...prevData, categories: newCategories }
     })
   }, [])
 
+  // Criar handlers específicos para cada campo para evitar re-criação de funções
+  const createItemHandler = useCallback((categoryId: string, itemId: string, field: keyof BudgetItem) => {
+    return (value: string | number | boolean) => {
+      updateItem(categoryId, itemId, field, value)
+    }
+  }, [updateItem])
+
   const updateCategory = useCallback((categoryId: string, field: keyof BudgetCategory, value: string) => {
     setEditableData(prevData => {
-      const newData = { ...prevData }
-      const categoryIndex = newData.categories.findIndex(cat => cat.id === categoryId)
-      if (categoryIndex !== -1) {
-        newData.categories = [...newData.categories]
-        newData.categories[categoryIndex] = {
-          ...newData.categories[categoryIndex],
-          [field]: value
-        }
-      }
-      return newData
+      // Verificar se o valor realmente mudou para evitar re-renderizações desnecessárias
+      const category = prevData.categories.find(cat => cat.id === categoryId)
+      if (!category || category[field] === value) return prevData
+
+      // Apenas atualizar se o valor realmente mudou
+      const newCategories = prevData.categories.map(cat => {
+        if (cat.id !== categoryId) return cat
+        return { ...cat, [field]: value }
+      })
+
+      return { ...prevData, categories: newCategories }
     })
   }, [])
+
+  // Criar handlers específicos para categorias
+  const createCategoryHandler = useCallback((categoryId: string, field: keyof BudgetCategory) => {
+    return (value: string | number) => {
+      updateCategory(categoryId, field, value.toString())
+    }
+  }, [updateCategory])
 
   // Handle AI selection
   const toggleItemSelection = (itemId: string) => {
@@ -386,8 +559,7 @@ export function BudgetTable() {
               id: item.id,
               description: item.description,
               quantity: item.quantity,
-              unitValue: item.unitPrice,
-              billingType: item.billingType
+              unitValue: item.unitPrice
             }
           }
         }
@@ -433,8 +605,7 @@ export function BudgetTable() {
               ...category.items[itemIndex],
               description: editedItem.description,
               quantity: editedItem.quantity,
-              unitPrice: editedItem.unitValue,
-              billingType: editedItem.billingType
+              unitPrice: editedItem.unitValue
             }
           }
         }
@@ -470,8 +641,7 @@ export function BudgetTable() {
           id: item.id,
           description: item.description,
           quantity: item.quantity,
-          unitValue: item.unitPrice,
-          billingType: item.billingType
+          unitValue: item.unitPrice
         }))
       )
 
@@ -514,8 +684,7 @@ export function BudgetTable() {
               ...category.items[itemIndex],
               description: editedItem.description,
               quantity: editedItem.quantity,
-              unitPrice: editedItem.unitValue,
-              billingType: editedItem.billingType
+              unitPrice: editedItem.unitValue
             }
           }
         }
@@ -540,28 +709,41 @@ export function BudgetTable() {
   }
 
   const recalculateTotals = () => {
-    let principal = 0
-    let equipe = 0
+    let categorias = 0
 
     editableData.categories.forEach(category => {
       category.items.forEach(item => {
-        const total = calculateItemTotal(item)
-        if (item.billingType === 'Direto ao Cliente' || item.billingType === 'Faturamento Direto') {
-          principal += total
-        } else if (item.billingType === 'Equipe') {
-          equipe += total
+        if (item.status) {
+          const total = calculateItemTotal(item)
+          categorias += total
         }
       })
     })
 
+    const planejamento = categorias * (percentages.planejamento / 100)
+    const criacao = categorias * (percentages.criacao / 100)
+    const honorarios = categorias * (percentages.honorarios / 100)
+    const impostos = categorias * (percentages.impostos / 100)
+    const geral = categorias + planejamento + criacao + honorarios + impostos
+
     return {
-      principal: principal * 100,
-      equipe: equipe * 100,
-      geral: (principal + equipe) * 100
+      categorias,
+      planejamento,
+      criacao,
+      honorarios,
+      impostos,
+      geral
     }
   }
 
   const totals = recalculateTotals()
+  
+  const updatePercentage = (field: keyof typeof percentages, value: number) => {
+    setPercentages(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
 
   // Drag and drop handlers
   const handleDragStart = (event: DragStartEvent) => {
@@ -700,6 +882,8 @@ export function BudgetTable() {
         className={`border-b border-white/10 hover:bg-white/5 transition-colors ${
           isDragging ? 'bg-white/10' : ''
         }`}
+        onMouseEnter={() => expandItem(item.id)}
+        onMouseLeave={() => collapseItem(item.id)}
       >
         {children}
         {editMode && (
@@ -729,7 +913,7 @@ export function BudgetTable() {
       {/* Password Modal */}
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-6 w-96">
+          <div className="glass-blur-strong p-6 w-96">
             <h3 className="text-lg font-bold text-white mb-4">Acesso ao Modo de Edição</h3>
             <p className="text-sm text-white/60 mb-4">Digite a senha para acessar o modo de edição:</p>
             <input
@@ -742,7 +926,7 @@ export function BudgetTable() {
               autoFocus
             />
             {passwordError && (
-              <p className="text-red-400 text-sm mb-4">{passwordError}</p>
+              <p className="text-white text-sm mb-4">{passwordError}</p>
             )}
             <div className="flex gap-2 justify-end">
               <button
@@ -757,7 +941,7 @@ export function BudgetTable() {
               </button>
               <button
                 onClick={handlePasswordSubmit}
-                className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded text-blue-400 text-sm transition-colors"
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded text-white text-sm transition-colors"
               >
                 Confirmar
               </button>
@@ -772,12 +956,12 @@ export function BudgetTable() {
             {editMode ? 'Modo de Edição' : ''}
           </h3>
           {saveStatus === 'success' && (
-            <div className="text-green-400 text-sm flex items-center gap-1">
+            <div className="text-white text-sm flex items-center gap-1">
               ✓ Dados salvos com sucesso!
             </div>
           )}
           {saveStatus === 'error' && (
-            <div className="text-red-400 text-sm flex items-center gap-1">
+            <div className="text-white text-sm flex items-center gap-1">
               <AlertCircle className="w-4 h-4" />
               Erro ao salvar dados
             </div>
@@ -801,7 +985,7 @@ export function BudgetTable() {
                 <button
                   onClick={processGlobalAI}
                   disabled={globalAIProcessing || !globalAIPrompt.trim()}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors disabled:opacity-50"
                   title="Processar com IA Global"
                 >
                   {globalAIProcessing ? (
@@ -843,7 +1027,7 @@ export function BudgetTable() {
               <button
                 onClick={saveBudgetData}
                 disabled={saving}
-                className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 rounded-lg text-green-400 text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
               >
                 {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 {saving ? 'Salvando...' : 'Salvar'}
@@ -851,14 +1035,14 @@ export function BudgetTable() {
               <button
                 onClick={resetToOriginal}
                 disabled={saving}
-                className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-red-400 text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-black/20 hover:bg-black/30 rounded-lg text-white text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
               >
                 <RefreshCw className="w-4 h-4" />
                 Reset
               </button>
               <button
                 onClick={addNewCategory}
-                className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg text-blue-400 text-sm flex items-center gap-2 transition-colors"
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white text-sm flex items-center gap-2 transition-colors"
               >
                 + Categoria
               </button>
@@ -869,17 +1053,17 @@ export function BudgetTable() {
 
       {/* Bulk Actions Bar */}
       {editMode && selectedItems.length > 0 && (
-        <div className="mb-4 bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+        <div className="mb-4 glass-blur p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-blue-400 font-medium">
+              <span className="text-white font-medium">
                 {selectedItems.length} {selectedItems.length === 1 ? 'item selecionado' : 'itens selecionados'}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => openAIModal()}
-                className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg text-blue-400 text-sm flex items-center gap-2 transition-colors"
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white text-sm flex items-center gap-2 transition-colors"
               >
                 <Bot className="w-4 h-4" />
                 Editar com IA
@@ -898,14 +1082,14 @@ export function BudgetTable() {
       {/* AI Edit Modal */}
       {showAIModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-6 w-[600px] max-h-[80vh] overflow-y-auto">
+          <div className="glass-blur-strong p-6 w-[600px] max-h-[80vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-white mb-4">Edição com IA</h3>
             
             <div className="mb-4">
               <p className="text-sm text-white/60 mb-2">
                 Itens selecionados ({selectedItems.length}):
               </p>
-              <div className="bg-white/5 border border-white/10 rounded p-3 max-h-32 overflow-y-auto">
+              <div className="glass-blur-subtle p-3 max-h-32 overflow-y-auto">
                 {selectedItems.map(itemId => {
                   const item = editableData.categories
                     .flatMap(cat => cat.items)
@@ -943,7 +1127,7 @@ export function BudgetTable() {
               <button
                 onClick={processAIEdit}
                 disabled={aiProcessing || !aiPrompt.trim()}
-                className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded text-blue-400 text-sm transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded text-white text-sm transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 {aiProcessing ? (
                   <>
@@ -962,7 +1146,12 @@ export function BudgetTable() {
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" onMouseLeave={() => {
+        // Colapsar todos os itens quando o mouse sair da área da tabela
+        Object.values(hoverTimeouts).forEach(timeout => clearTimeout(timeout))
+        setHoverTimeouts({})
+        setExpandedItems([])
+      }}>
         <div className="min-w-[1200px]">
           <DndContext
             sensors={sensors}
@@ -984,7 +1173,7 @@ export function BudgetTable() {
                             title="Selecionar todos"
                           >
                             {selectedItems.length === editableData.categories.flatMap(cat => cat.items).length && selectedItems.length > 0 ?
-                              <Check className="w-4 h-4 text-blue-400" /> :
+                              <Check className="w-4 h-4 text-white" /> :
                               <Square className="w-4 h-4" />
                             }
                           </button>
@@ -992,24 +1181,18 @@ export function BudgetTable() {
                       )}
                       <th className="text-left py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider w-16"></th>
                       <th className="text-left py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider">Item</th>
-                      <th className="text-left py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider min-w-[300px]">Descrição</th>
+                      <th className="text-left py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider min-w-[250px]">Descrição</th>
+                      <th className="text-left py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider min-w-[300px]">Descrição Detalhada</th>
                       <th className="text-left py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider min-w-[200px]">Observações</th>
-                      {(editMode || clientViewMode === 'complete') && (
-                        <th className="text-center py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider">Qtd</th>
-                      )}
-                      {(editMode || clientViewMode === 'complete') && (
-                        <th className="text-center py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider">Dias</th>
-                      )}
-                      {(editMode || clientViewMode === 'complete') && (
-                        <th className="text-center py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider">Freq</th>
-                      )}
+                      <th className="text-center py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider">Qtd</th>
+                      <th className="text-center py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider">Dias</th>
+                      <th className="text-center py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider">Freq</th>
                       {(editMode || clientViewMode === 'complete') && (
                         <th className="text-right py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider">Unitário</th>
                       )}
                       {(editMode || clientViewMode !== 'total') && (
                         <th className="text-right py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider">Total</th>
                       )}
-                      <th className="text-left py-4 px-4 text-sm font-medium text-white/60 uppercase tracking-wider">Tipo</th>
                       {editMode && (
                         <th className="text-center py-4 px-2 text-sm font-medium text-white/60 uppercase tracking-wider w-12">Mover</th>
                       )}
@@ -1018,25 +1201,25 @@ export function BudgetTable() {
               <tbody>
                 {editableData.categories.map((category) => (
                   <React.Fragment key={category.id}>
-                  <tr className="bg-white/5">
-                    <td colSpan={editMode ? 12 : 10} className="py-3 px-4">
+                  <tr className="glass-blur-subtle">
+                    <td colSpan={editMode ? 12 : (clientViewMode === 'complete' ? 10 : 9)} className="py-3 px-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           {editMode ? (
-                            <input
+                            <DebouncedInput
                               type="text"
                               value={category.name}
-                              onChange={(e) => updateCategory(category.id, 'name', e.target.value)}
+                              onChange={createCategoryHandler(category.id, 'name')}
                               className="text-lg font-bold bg-white/10 border border-white/20 rounded px-2 py-1 text-white"
                             />
                           ) : (
                             <span className="text-lg font-bold text-white">{category.name}</span>
                           )}
                           {editMode ? (
-                            <input
+                            <DebouncedInput
                               type="text"
                               value={category.description}
-                              onChange={(e) => updateCategory(category.id, 'description', e.target.value)}
+                              onChange={createCategoryHandler(category.id, 'description')}
                               className="text-sm bg-white/10 border border-white/20 rounded px-2 py-1 text-white/90"
                               placeholder="Descrição da categoria"
                             />
@@ -1048,13 +1231,13 @@ export function BudgetTable() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => addNewItem(category.id)}
-                              className="px-3 py-1 bg-green-500/20 hover:bg-green-500/30 rounded text-green-400 text-sm transition-colors"
+                              className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-white text-sm transition-colors"
                             >
                               + Item
                             </button>
                             <button
                               onClick={() => deleteCategory(category.id)}
-                              className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 rounded text-red-400 text-sm transition-colors"
+                              className="px-3 py-1 bg-black/20 hover:bg-black/30 rounded text-white text-sm transition-colors"
                             >
                               🗑️
                             </button>
@@ -1074,7 +1257,7 @@ export function BudgetTable() {
                               title="Selecionar item"
                             >
                               {selectedItems.includes(item.id) ?
-                                <Check className="w-4 h-4 text-blue-400" /> :
+                                <Check className="w-4 h-4 text-white" /> :
                                 <Square className="w-4 h-4" />
                               }
                             </button>
@@ -1098,16 +1281,16 @@ export function BudgetTable() {
                               onMouseEnter={() => setHoveredField(`${item.id}-description`)}
                               onMouseLeave={() => setHoveredField(null)}
                             >
-                              <input
+                              <DebouncedInput
                                 type="text"
                                 value={item.description}
-                                onChange={(e) => updateItem(category.id, item.id, 'description', e.target.value)}
+                                onChange={createItemHandler(category.id, item.id, 'description')}
                                 className="w-full bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white pr-8"
                               />
                               {hoveredField === `${item.id}-description` && (
                                 <button
                                   onClick={() => openAIModal([item.id])}
-                                  className="absolute right-1 top-1/2 transform -translate-y-1/2 text-blue-400 hover:text-blue-300 transition-colors opacity-0 group-hover:opacity-100"
+                                  className="absolute right-1 top-1/2 transform -translate-y-1/2 text-white hover:text-white transition-colors opacity-0 group-hover:opacity-100"
                                   title="Editar campo com IA"
                                 >
                                   <Bot className="w-3 h-3" />
@@ -1120,17 +1303,17 @@ export function BudgetTable() {
                                 onMouseEnter={() => setHoveredField(`${item.id}-supplier`)}
                                 onMouseLeave={() => setHoveredField(null)}
                               >
-                                <input
+                                <DebouncedInput
                                   type="text"
                                   value={item.supplier}
-                                  onChange={(e) => updateItem(category.id, item.id, 'supplier', e.target.value)}
+                                  onChange={createItemHandler(category.id, item.id, 'supplier')}
                                   className="w-full bg-white/10 border border-white/20 rounded px-1 text-xs text-white/80 pr-6"
                                   placeholder="Fornecedor"
                                 />
                                 {hoveredField === `${item.id}-supplier` && (
                                   <button
                                     onClick={() => openAIModal([item.id])}
-                                    className="absolute right-1 top-1/2 transform -translate-y-1/2 text-blue-400 hover:text-blue-300 transition-colors opacity-0 group-hover:opacity-100"
+                                    className="absolute right-1 top-1/2 transform -translate-y-1/2 text-white hover:text-white transition-colors opacity-0 group-hover:opacity-100"
                                     title="Editar campo com IA"
                                   >
                                     <Bot className="w-2 h-2" />
@@ -1142,20 +1325,21 @@ export function BudgetTable() {
                           <td className="py-3 px-4">
                             <div
                               className="relative group"
-                              onMouseEnter={() => setHoveredField(`${item.id}-notes`)}
+                              onMouseEnter={() => setHoveredField(`${item.id}-detailedDescription`)}
                               onMouseLeave={() => setHoveredField(null)}
                             >
-                              <textarea
-                                value={item.notes || ''}
-                                onChange={(e) => updateItem(category.id, item.id, 'notes', e.target.value)}
+                              <DebouncedInput
+                                type="textarea"
+                                value={item.detailedDescription}
+                                onChange={createItemHandler(category.id, item.id, 'detailedDescription')}
                                 className="w-full bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white resize-none pr-8"
-                                placeholder="Observações adicionais"
-                                rows={2}
+                                placeholder="Descrição detalhada do item"
+                                rows={3}
                               />
-                              {hoveredField === `${item.id}-notes` && (
+                              {hoveredField === `${item.id}-detailedDescription` && (
                                 <button
                                   onClick={() => openAIModal([item.id])}
-                                  className="absolute right-1 top-1 text-blue-400 hover:text-blue-300 transition-colors opacity-0 group-hover:opacity-100"
+                                  className="absolute right-1 top-1 text-white hover:text-white transition-colors opacity-0 group-hover:opacity-100"
                                   title="Editar campo com IA"
                                 >
                                   <Bot className="w-3 h-3" />
@@ -1163,51 +1347,72 @@ export function BudgetTable() {
                               )}
                             </div>
                           </td>
-                          {(editMode || clientViewMode === 'complete') && (
-                            <td className="py-3 px-4 text-center">
-                              <div
-                                className="relative group inline-block"
-                                onMouseEnter={() => setHoveredField(`${item.id}-quantity`)}
-                                onMouseLeave={() => setHoveredField(null)}
-                              >
-                                <input
-                                  type="number"
-                                  value={item.quantity}
-                                  onChange={(e) => updateItem(category.id, item.id, 'quantity', parseInt(e.target.value) || 0)}
-                                  className="w-16 bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white text-center pr-6"
-                                />
-                                {hoveredField === `${item.id}-quantity` && (
-                                  <button
-                                    onClick={() => openAIModal([item.id])}
-                                    className="absolute right-0 top-1/2 transform -translate-y-1/2 text-blue-400 hover:text-blue-300 transition-colors opacity-0 group-hover:opacity-100"
-                                    title="Editar campo com IA"
-                                  >
-                                    <Bot className="w-2 h-2" />
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          )}
-                          {(editMode || clientViewMode === 'complete') && (
-                            <td className="py-3 px-4 text-center">
-                              <input
-                                type="number"
-                                value={item.days}
-                                onChange={(e) => updateItem(category.id, item.id, 'days', parseInt(e.target.value) || 0)}
-                                className="w-16 bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white text-center"
+                          <td className="py-3 px-4">
+                            <div
+                              className="relative group"
+                              onMouseEnter={() => setHoveredField(`${item.id}-notes`)}
+                              onMouseLeave={() => setHoveredField(null)}
+                            >
+                              <DebouncedInput
+                                type="textarea"
+                                value={item.notes || ''}
+                                onChange={createItemHandler(category.id, item.id, 'notes')}
+                                className="w-full bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white resize-none pr-8"
+                                placeholder="Observações adicionais"
+                                rows={2}
                               />
-                            </td>
-                          )}
-                          {(editMode || clientViewMode === 'complete') && (
-                            <td className="py-3 px-4 text-center">
-                              <input
+                              {hoveredField === `${item.id}-notes` && (
+                                <button
+                                  onClick={() => openAIModal([item.id])}
+                                  className="absolute right-1 top-1 text-white hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                                  title="Editar campo com IA"
+                                >
+                                  <Bot className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div
+                              className="relative group inline-block"
+                              onMouseEnter={() => setHoveredField(`${item.id}-quantity`)}
+                              onMouseLeave={() => setHoveredField(null)}
+                            >
+                              <DebouncedInput
                                 type="number"
-                                value={item.frequency}
-                                onChange={(e) => updateItem(category.id, item.id, 'frequency', parseInt(e.target.value) || 0)}
-                                className="w-16 bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white text-center"
+                                value={item.quantity}
+                                onChange={createItemHandler(category.id, item.id, 'quantity')}
+                                className="w-16 bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white text-center pr-6"
                               />
-                            </td>
-                          )}
+                              {hoveredField === `${item.id}-quantity` && (
+                                <button
+                                  onClick={() => openAIModal([item.id])}
+                                  className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                                  title="Editar campo com IA"
+                                >
+                                  <Bot className="w-2 h-2" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <DebouncedInput
+                              type="number"
+                              value={item.days}
+                              onChange={createItemHandler(category.id, item.id, 'days')}
+                              className="w-16 bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white text-center"
+                              debounceMs={100}
+                            />
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <DebouncedInput
+                              type="number"
+                              value={item.frequency}
+                              onChange={createItemHandler(category.id, item.id, 'frequency')}
+                              className="w-16 bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white text-center"
+                              debounceMs={100}
+                            />
+                          </td>
                           {(editMode || clientViewMode === 'complete') && (
                             <td className="py-3 px-4 text-right">
                               <div
@@ -1215,16 +1420,16 @@ export function BudgetTable() {
                                 onMouseEnter={() => setHoveredField(`${item.id}-unitPrice`)}
                                 onMouseLeave={() => setHoveredField(null)}
                               >
-                                <input
+                                <DebouncedInput
                                   type="number"
                                   value={item.unitPrice}
-                                  onChange={(e) => updateItem(category.id, item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                  onChange={createItemHandler(category.id, item.id, 'unitPrice')}
                                   className="w-24 bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white text-right pr-6"
                                 />
                                 {hoveredField === `${item.id}-unitPrice` && (
                                   <button
                                     onClick={() => openAIModal([item.id])}
-                                    className="absolute right-0 top-1/2 transform -translate-y-1/2 text-blue-400 hover:text-blue-300 transition-colors opacity-0 group-hover:opacity-100"
+                                    className="absolute right-0 top-1/2 transform -translate-y-1/2 text-white hover:text-white transition-colors opacity-0 group-hover:opacity-100"
                                     title="Editar campo com IA"
                                   >
                                     <Bot className="w-2 h-2" />
@@ -1240,27 +1445,16 @@ export function BudgetTable() {
                           )}
                           <td className="py-3 px-4 text-sm">
                             <div className="flex items-center gap-2">
-                              <select
-                                value={item.billingType}
-                                onChange={(e) => updateItem(category.id, item.id, 'billingType', e.target.value)}
-                                className="bg-white/10 border border-white/20 rounded px-2 py-1 text-xs text-white"
-                              >
-                                {billingTypes.map(type => (
-                                  <option key={type} value={type} className="bg-gray-800 text-white">
-                                    {type}
-                                  </option>
-                                ))}
-                              </select>
                               <button
                                 onClick={() => openAIModal([item.id])}
-                                className="text-blue-400 hover:text-blue-300 transition-colors"
+                                className="text-white hover:text-white transition-colors"
                                 title="Editar item com IA"
                               >
                                 <Bot className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => deleteItem(category.id, item.id)}
-                                className="text-red-400 hover:text-red-300 text-xs transition-colors"
+                                className="text-white hover:text-white text-xs transition-colors"
                                 title="Excluir item"
                               >
                                 🗑️
@@ -1269,7 +1463,11 @@ export function BudgetTable() {
                           </td>
                         </SortableItem>
                       ) : (
-                        <tr className="border-b border-white/10 hover:bg-white/5 transition-colors">
+                        <tr 
+                          className="border-b border-white/10 hover:bg-white/5 transition-colors"
+                          onMouseEnter={() => expandItem(item.id)}
+                          onMouseLeave={() => collapseItem(item.id)}
+                        >
                           <td className="py-3 px-4 text-center">
                             <button
                               onClick={() => toggleItemExpansion(item.id)}
@@ -1283,28 +1481,25 @@ export function BudgetTable() {
                             </button>
                           </td>
                           <td className="py-3 px-4 text-sm text-white/80">{getItemNumber(item.id)}</td>
-                          <td className="py-3 px-4 min-w-[300px]">
+                          <td className="py-3 px-4 min-w-[250px]">
                             <div className="text-sm text-white">{item.description}</div>
                             <div className="text-xs text-white/60 mt-1">{item.supplier}</div>
+                          </td>
+                          <td className="py-3 px-4 min-w-[300px]">
+                            <div className="text-sm text-white/80">{item.detailedDescription}</div>
                           </td>
                           <td className="py-3 px-4 min-w-[200px]">
                             <div className="text-sm text-white/80">{item.notes || '-'}</div>
                           </td>
-                          {(editMode || clientViewMode === 'complete') && (
-                            <td className="py-3 px-4 text-center">
-                              <span className="text-sm text-white/80">{item.quantity}</span>
-                            </td>
-                          )}
-                          {(editMode || clientViewMode === 'complete') && (
-                            <td className="py-3 px-4 text-center">
-                              <span className="text-sm text-white/80">{item.days}</span>
-                            </td>
-                          )}
-                          {(editMode || clientViewMode === 'complete') && (
-                            <td className="py-3 px-4 text-center">
-                              <span className="text-sm text-white/80">{item.frequency}x</span>
-                            </td>
-                          )}
+                          <td className="py-3 px-4 text-center">
+                            <span className="text-sm text-white/80">{item.quantity}</span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="text-sm text-white/80">{item.days}</span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="text-sm text-white/80">{item.frequency}x</span>
+                          </td>
                           {(editMode || clientViewMode === 'complete') && (
                             <td className="py-3 px-4 text-right">
                               <span className="text-sm text-white/80">
@@ -1317,20 +1512,15 @@ export function BudgetTable() {
                               {clientViewMode === 'complete' ? formatCurrency(calculateItemTotal(item)) : ''}
                             </td>
                           )}
-                          <td className="py-3 px-4 text-sm">
-                            <span className={`
-                              px-2 py-1 rounded text-xs
-                              ${item.billingType === 'Direto ao Cliente' || item.billingType === 'Faturamento Direto' ? 'bg-blue-500/20 text-blue-400' : ''}
-                              ${item.billingType === 'Equipe' ? 'bg-purple-500/20 text-purple-400' : ''}
-                            `}>
-                              {item.billingType}
-                            </span>
-                          </td>
                         </tr>
                       )}
                       {expandedItems.includes(item.id) && (
-                        <tr className="bg-black/30">
-                          <td colSpan={editMode ? 12 : 10} className="p-4">
+                        <tr 
+                          className="glass-blur-subtle"
+                          onMouseEnter={() => expandItem(item.id)}
+                          onMouseLeave={() => collapseItem(item.id)}
+                        >
+                          <td colSpan={editMode ? 12 : (clientViewMode === 'complete' ? 10 : 9)} className="p-4">
                             <div className="space-y-2">
                               <div className="text-sm font-medium text-white mb-2">Descrição Detalhada:</div>
                               {editMode ? (
@@ -1368,15 +1558,14 @@ export function BudgetTable() {
                       )}
                     </React.Fragment>
                   ))}
-                  <tr className="bg-white/10">
-                    <td colSpan={editMode ? 9 : 8} className="py-3 px-4 text-right font-medium text-white">
+                  <tr className="glass-blur">
+                    <td colSpan={editMode ? 9 : (clientViewMode === 'complete' ? 8 : 7)} className="py-3 px-4 text-right font-medium text-white">
                       Subtotal {category.name}:
                     </td>
                     <td className="py-3 px-4 text-right font-bold text-white">
                       {clientViewMode === 'total' ? '•••••' :
                        formatCurrency(category.items.reduce((total, item) => total + calculateItemTotal(item), 0))}
                     </td>
-                    <td></td>
                   </tr>
                 </React.Fragment>
               ))}
@@ -1384,18 +1573,38 @@ export function BudgetTable() {
             <tfoot>
               <tr className="border-t-2 border-white/20">
                 <td colSpan={10} className="py-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-lg mx-auto">
-                    <div className="bg-purple-500/10 p-4 rounded-lg border border-purple-500/20">
-                      <p className="text-sm text-purple-400 mb-1">Equipe</p>
-                      <p className="text-2xl font-bold text-white">
-                        {clientViewMode === 'total' ? '' : formatCurrency(totals.equipe / 100)}
-                      </p>
+                  {clientViewMode === 'total' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                      <div className="glass-blur p-6 text-center hover:glass-blur-strong transition-all duration-300">
+                        <p className="text-sm text-white/60 mb-1 uppercase tracking-wider">Versão Basic</p>
+                        <p className="text-3xl font-bold text-white mb-2">R$ 2.098.765</p>
+                        <p className="text-xs text-white/40">Essencial para o evento</p>
+                      </div>
+                      <div className="glass-blur-strong p-6 text-center border-2 border-white/20">
+                        <p className="text-sm text-white/60 mb-1 uppercase tracking-wider">Versão Standard</p>
+                        <p className="text-3xl font-bold text-white mb-2">R$ 2.730.430</p>
+                        <p className="text-xs text-white/40">Experiência completa</p>
+                      </div>
+                      <div className="glass-blur p-6 text-center hover:glass-blur-strong transition-all duration-300">
+                        <p className="text-sm text-white/60 mb-1 uppercase tracking-wider">Versão Premium</p>
+                        <p className="text-3xl font-bold text-white mb-2">R$ 3.234.322</p>
+                        <p className="text-xs text-white/40">Máximo impacto</p>
+                      </div>
                     </div>
-                    <div className="bg-white/20 p-4 rounded-lg border border-white/30">
-                      <p className="text-sm text-white mb-1">TOTAL GERAL</p>
-                      <p className="text-2xl font-bold text-white">{formatCurrency(totals.geral / 100)}</p>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-lg mx-auto">
+                      <div className="glass-blur p-4">
+                        <p className="text-sm text-white mb-1">Subtotal</p>
+                        <p className="text-2xl font-bold text-white">
+                          {clientViewMode === 'category' ? formatCurrency(totals.categorias) : formatCurrency(totals.categorias)}
+                        </p>
+                      </div>
+                      <div className="glass-blur-strong p-4">
+                        <p className="text-sm text-white mb-1">TOTAL GERAL</p>
+                        <p className="text-2xl font-bold text-white">{formatCurrency(totals.geral)}</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </td>
               </tr>
             </tfoot>
@@ -1410,38 +1619,89 @@ export function BudgetTable() {
           <p className="text-sm text-white/60">Data de Apresentação: {editableData.dataApresentacao || '31/07/2025'}</p>
         </div>
         
-        <div className="p-6 bg-white/5 rounded-lg border border-white/10">
+        <div className="glass-blur p-6">
           <h3 className="text-lg font-bold text-white mb-4">Totais da Proposta</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-white/60">Total Categorias:</span>
-                <span className="text-sm font-medium text-white">{formatCurrency(editableData.totals?.categorias || 0)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-white/60">Planejamento (1,5%):</span>
-                <span className="text-sm font-medium text-white">{formatCurrency(editableData.totals?.planejamento || 0)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-white/60">Criação (1,5%):</span>
-                <span className="text-sm font-medium text-white">{formatCurrency(editableData.totals?.criacao || 0)}</span>
+          
+          {editMode && clientViewMode !== 'total' && (
+            <div className="mb-6 p-4 glass-blur-subtle">
+              <h4 className="text-md font-bold text-white mb-3">Configuração de Percentuais</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="text-xs text-white/60 mb-1 block">Planejamento (%)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={percentages.planejamento}
+                    onChange={(e) => updatePercentage('planejamento', parseFloat(e.target.value) || 0)}
+                    className="w-full bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white text-center"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-white/60 mb-1 block">Criação (%)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={percentages.criacao}
+                    onChange={(e) => updatePercentage('criacao', parseFloat(e.target.value) || 0)}
+                    className="w-full bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white text-center"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-white/60 mb-1 block">Honorários (%)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={percentages.honorarios}
+                    onChange={(e) => updatePercentage('honorarios', parseFloat(e.target.value) || 0)}
+                    className="w-full bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white text-center"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-white/60 mb-1 block">Impostos (%)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={percentages.impostos}
+                    onChange={(e) => updatePercentage('impostos', parseFloat(e.target.value) || 0)}
+                    className="w-full bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white text-center"
+                  />
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-white/60">Honorários (10%):</span>
-                <span className="text-sm font-medium text-white">{formatCurrency(editableData.totals?.honorarios || 0)}</span>
+          )}
+          
+          {clientViewMode !== 'total' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-white/60">Total Categorias:</span>
+                  <span className="text-sm font-medium text-white">{formatCurrency(totals.categorias)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-white/60">Planejamento ({percentages.planejamento}%):</span>
+                  <span className="text-sm font-medium text-white">{formatCurrency(totals.planejamento)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-white/60">Criação ({percentages.criacao}%):</span>
+                  <span className="text-sm font-medium text-white">{formatCurrency(totals.criacao)}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-white/60">Impostos (18,06%):</span>
-                <span className="text-sm font-medium text-white">{formatCurrency(editableData.totals?.impostos || 0)}</span>
-              </div>
-              <div className="flex justify-between border-t border-white/20 pt-2">
-                <span className="text-sm font-bold text-white">TOTAL PROPOSTA:</span>
-                <span className="text-lg font-bold text-white">{formatCurrency(editableData.totals?.geral || 0)}</span>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-white/60">Honorários ({percentages.honorarios}%):</span>
+                  <span className="text-sm font-medium text-white">{formatCurrency(totals.honorarios)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-white/60">Impostos ({percentages.impostos}%):</span>
+                  <span className="text-sm font-medium text-white">{formatCurrency(totals.impostos)}</span>
+                </div>
+                <div className="flex justify-between border-t border-white/20 pt-2">
+                  <span className="text-sm font-bold text-white">TOTAL PROPOSTA:</span>
+                  <span className="text-lg font-bold text-white">{formatCurrency(totals.geral)}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
           
           <h4 className="text-md font-bold text-white mb-3 mt-6">Observações</h4>
           <p className="text-sm text-white/80 mb-4">{editableData.observacoes}</p>
@@ -1463,7 +1723,7 @@ export function BudgetTable() {
               <li key={index}>{condicao}</li>
             ))}
             {editMode && (
-              <li className="text-yellow-400">• Modo de edição ativo - Clique em &quot;Modo Cliente&quot; antes de enviar ao cliente</li>
+              <li className="text-white">• Modo de edição ativo - Clique em &quot;Modo Cliente&quot; antes de enviar ao cliente</li>
             )}
           </ul>
         </div>

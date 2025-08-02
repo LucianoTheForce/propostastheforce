@@ -16,12 +16,11 @@ export const budgetData = {
           "status": true,
           "quantity": 0,
           "days": 7,
-          "frequency": 0,
+          "frequency": 1,
           "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Faturamento Direto",
-          "notes": "Subtotal Faturamento The Force"
+          "notes": ""
         }
       ]
     },
@@ -41,7 +40,7 @@ export const budgetData = {
           "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "2.2",
@@ -50,11 +49,11 @@ export const budgetData = {
           "status": true,
           "quantity": 0,
           "days": 0,
-          "frequency": 0,
+          "frequency": 1,
           "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "2.3",
@@ -67,7 +66,7 @@ export const budgetData = {
           "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "2.4",
@@ -80,7 +79,7 @@ export const budgetData = {
           "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "2.5",
@@ -93,7 +92,7 @@ export const budgetData = {
           "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "2.6",
@@ -106,7 +105,7 @@ export const budgetData = {
           "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "2.7",
@@ -119,7 +118,7 @@ export const budgetData = {
           "unitPrice": 25000,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "2.8",
@@ -132,7 +131,7 @@ export const budgetData = {
           "unitPrice": 15000,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "2.9",
@@ -145,7 +144,7 @@ export const budgetData = {
           "unitPrice": 18000,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "2.10",
@@ -158,7 +157,7 @@ export const budgetData = {
           "unitPrice": 12000,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         }
       ]
     },
@@ -178,7 +177,7 @@ export const budgetData = {
           "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "3.3",
@@ -187,11 +186,11 @@ export const budgetData = {
           "status": true,
           "quantity": 1,
           "days": 7,
-          "frequency": 6,
+          "frequency": 1,
           "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "3.4",
@@ -204,7 +203,7 @@ export const budgetData = {
           "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "3.5",
@@ -217,7 +216,7 @@ export const budgetData = {
           "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         }
       ]
     },
@@ -237,7 +236,7 @@ export const budgetData = {
           "unitPrice": 15000,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "4.2",
@@ -250,7 +249,7 @@ export const budgetData = {
           "unitPrice": 45000,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "4.3",
@@ -263,7 +262,7 @@ export const budgetData = {
           "unitPrice": 3500,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "4.4",
@@ -276,7 +275,7 @@ export const budgetData = {
           "unitPrice": 8000,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "4.5",
@@ -285,11 +284,11 @@ export const budgetData = {
           "status": true,
           "quantity": 1,
           "days": 7,
-          "frequency": 6,
+          "frequency": 1,
           "unitPrice": 150,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "4.6",
@@ -302,7 +301,7 @@ export const budgetData = {
           "unitPrice": 800,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "4.7",
@@ -315,20 +314,20 @@ export const budgetData = {
           "unitPrice": 1500,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "4.8",
           "description": "Relatórios de Performance",
           "detailedDescription": "Relatórios detalhados de performance e métricas de participação em tempo real.",
           "status": true,
-          "quantity": 40,
+          "quantity": 7,
           "days": 1,
           "frequency": 1,
           "unitPrice": 200,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "4.9",
@@ -341,7 +340,7 @@ export const budgetData = {
           "unitPrice": 8000,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "4.10",
@@ -354,7 +353,7 @@ export const budgetData = {
           "unitPrice": 2000,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "4.11",
@@ -367,7 +366,7 @@ export const budgetData = {
           "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "4.12",
@@ -380,7 +379,7 @@ export const budgetData = {
           "unitPrice": 3520,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         }
       ]
     },
@@ -400,7 +399,7 @@ export const budgetData = {
           "unitPrice": 450,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "5.2",
@@ -413,7 +412,7 @@ export const budgetData = {
           "unitPrice": 25000,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "5.3",
@@ -426,7 +425,7 @@ export const budgetData = {
           "unitPrice": 35000,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "5.4",
@@ -435,18 +434,18 @@ export const budgetData = {
           "status": true,
           "quantity": 1,
           "days": 7,
-          "frequency": 6,
+          "frequency": 1,
           "unitPrice": 1200,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         }
       ]
     },
     {
       "id": "6",
-      "name": "6. DISTRIBUIÇÃO DE PRÊMIOS",
-      "description": "Prêmios e sistema de distribuição",
+      "name": "6. BRINDES",
+      "description": "Prêmios e brindes para distribuição",
       "items": [
         {
           "id": "6.1",
@@ -456,23 +455,23 @@ export const budgetData = {
           "quantity": 555,
           "days": 1,
           "frequency": 1,
-          "unitPrice": 45,
+          "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "6.2",
           "description": "Copos Betano",
-          "detailedDescription": "Copos térmicos personalizados distribuídos para participantes que acertarem a cor na roleta.",
+          "detailedDescription": "Copos personalizados distribuídos para participantes que acertarem a cor na roleta.",
           "status": true,
           "quantity": 1660,
           "days": 1,
           "frequency": 1,
-          "unitPrice": 12,
+          "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "6.3",
@@ -482,10 +481,10 @@ export const budgetData = {
           "quantity": 1110,
           "days": 1,
           "frequency": 1,
-          "unitPrice": 8,
+          "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         },
         {
           "id": "6.4",
@@ -495,23 +494,10 @@ export const budgetData = {
           "quantity": 20000,
           "days": 1,
           "frequency": 1,
-          "unitPrice": 5,
+          "unitPrice": 0,
           "supplier": "",
           "invoice": "",
-          "billingType": "Direto ao Cliente"
-        },
-        {
-          "id": "6.5",
-          "description": "Balcão de Distribuição",
-          "detailedDescription": "Balcão customizado para distribuição de prêmios, com controle de estoque em tempo real.",
-          "status": true,
-          "quantity": 1,
-          "days": 7,
-          "frequency": 1,
-          "unitPrice": 8500,
-          "supplier": "",
-          "invoice": "",
-          "billingType": "Direto ao Cliente"
+          "notes": ""
         }
       ]
     },
@@ -527,11 +513,11 @@ export const budgetData = {
           "status": true,
           "quantity": 1,
           "days": 7,
-          "frequency": 6,
+          "frequency": 1,
           "unitPrice": 120,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.2",
@@ -540,11 +526,11 @@ export const budgetData = {
           "status": true,
           "quantity": 2,
           "days": 7,
-          "frequency": 6,
+          "frequency": 1,
           "unitPrice": 80,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.3",
@@ -553,11 +539,11 @@ export const budgetData = {
           "status": true,
           "quantity": 4,
           "days": 7,
-          "frequency": 6,
+          "frequency": 1,
           "unitPrice": 70,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.4",
@@ -566,11 +552,11 @@ export const budgetData = {
           "status": true,
           "quantity": 2,
           "days": 7,
-          "frequency": 6,
+          "frequency": 1,
           "unitPrice": 65,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.5",
@@ -579,11 +565,11 @@ export const budgetData = {
           "status": true,
           "quantity": 1,
           "days": 7,
-          "frequency": 6,
+          "frequency": 1,
           "unitPrice": 45,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.6",
@@ -592,11 +578,11 @@ export const budgetData = {
           "status": true,
           "quantity": 1,
           "days": 7,
-          "frequency": 6,
+          "frequency": 1,
           "unitPrice": 90,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.7",
@@ -609,7 +595,7 @@ export const budgetData = {
           "unitPrice": 1200,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.8",
@@ -622,7 +608,7 @@ export const budgetData = {
           "unitPrice": 250,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.9",
@@ -635,7 +621,7 @@ export const budgetData = {
           "unitPrice": 10038.17,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.10",
@@ -648,20 +634,7 @@ export const budgetData = {
           "unitPrice": 38556.69,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
-        },
-        {
-          "id": "7.11",
-          "description": "Ambulância Simples",
-          "detailedDescription": "Ambulância simples para eventuais emergências.",
-          "status": true,
-          "quantity": 1,
-          "days": 1,
-          "frequency": 1,
-          "unitPrice": 361,
-          "supplier": "",
-          "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.12",
@@ -674,7 +647,7 @@ export const budgetData = {
           "unitPrice": 133,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.14",
@@ -687,7 +660,7 @@ export const budgetData = {
           "unitPrice": 3360,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.15",
@@ -700,7 +673,7 @@ export const budgetData = {
           "unitPrice": 22000,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         },
         {
           "id": "7.16",
@@ -713,7 +686,7 @@ export const budgetData = {
           "unitPrice": 26400,
           "supplier": "",
           "invoice": "",
-          "billingType": "Equipe"
+          "notes": ""
         }
       ]
     },
@@ -733,7 +706,7 @@ export const budgetData = {
           "unitPrice": 227.27,
           "supplier": "",
           "invoice": "",
-          "billingType": "Faturamento Direto"
+          "notes": ""
         },
         {
           "id": "8.2",
@@ -746,10 +719,10 @@ export const budgetData = {
           "unitPrice": 90.91,
           "supplier": "",
           "invoice": "",
-          "billingType": "Faturamento Direto"
+          "notes": ""
         }
       ]
-    }
+    },
   ],
   "totals": {
     "categorias": 3671718.35,
@@ -760,9 +733,9 @@ export const budgetData = {
     "geral": 4812154.07
   },
   "summary": {
-    "totalItems": 56,
-    "totalCategories": 8,
-    "activeItems": 56,
+    "totalItems": 49,
+    "totalCategories": 7,
+    "activeItems": 49,
     "currency": "BRL",
     "lastUpdated": "31/07/2025"
   },

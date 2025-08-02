@@ -24,7 +24,6 @@ interface BudgetItem {
   unitPrice: number
   supplier: string
   invoice: string
-  billingType: string
   notes?: string
 }
 

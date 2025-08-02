@@ -9,7 +9,7 @@ export function BetanoTables() {
   return (
     <div className="space-y-12">
       {/* Cálculo de Participantes */}
-      <div className="card-container p-8">
+      <div className="glass-blur p-8">
         <div className="heading-medium font-sans mb-6">
           <AdvancedTextAnimation tag="h3" fontWeight="bold" type="slide" direction="up">
             Cálculo de Participantes e Capacidade
@@ -63,7 +63,7 @@ export function BetanoTables() {
               </StyledTableRow>
             </StyledTableBody>
           </StyledTable>
-          <div className="mt-3 p-3 bg-white/5 rounded-lg">
+          <div className="mt-3 glass-blur-subtle p-3">
             <p className="text-sm text-white/80">
               <span className="font-medium">Tempo médio ponderado:</span> 43 segundos por participante
             </p>
@@ -169,8 +169,8 @@ export function BetanoTables() {
               </StyledTableRow>
             </StyledTableBody>
           </StyledTable>
-          <div className="mt-3 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-            <p className="text-sm text-blue-200">
+          <div className="mt-3 glass-blur p-3">
+            <p className="text-sm text-white">
               <span className="font-medium">Meta diária:</span> 1.700 cadastros (conversão de 0,5% do fluxo da estação)
             </p>
           </div>
@@ -231,7 +231,7 @@ export function BetanoTables() {
                 <StyledTableCell>30 segundos</StyledTableCell>
                 <StyledTableCell>Execução da roleta, anúncio, entrega de brinde</StyledTableCell>
               </StyledTableRow>
-              <StyledTableRow className="bg-white/5">
+              <StyledTableRow className="glass-blur-subtle">
                 <StyledTableCell className="font-bold">
                   <div>
                     <div>Experiência Completa</div>
@@ -243,8 +243,8 @@ export function BetanoTables() {
               </StyledTableRow>
             </StyledTableBody>
           </StyledTable>
-          <div className="mt-3 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
-            <p className="text-sm text-green-200">
+          <div className="mt-3 glass-blur p-3">
+            <p className="text-sm text-white">
               <span className="font-medium">Impacto positivo:</span> Experiência completa de ~6 minutos gera alto engajamento e recall da marca
             </p>
           </div>
@@ -252,7 +252,7 @@ export function BetanoTables() {
       </div>
 
       {/* Fluxo de Cadastros e Brindes */}
-      <div className="card-container p-8">
+      <div className="glass-blur p-8">
         <div className="heading-medium font-sans mb-6">
           <AdvancedTextAnimation tag="h3" fontWeight="bold" type="slide" direction="up">
             Fluxo de Cadastros e Distribuição de Brindes
@@ -317,51 +317,51 @@ export function BetanoTables() {
               <StyledTableRow>
                 <StyledTableCell>
                   <div>
-                    <div className="font-medium text-yellow-300">Número Exato</div>
+                    <div className="font-medium text-white">Número Exato</div>
                     <div className="text-xs text-white/60">Acerto certeiro (1 em 37)</div>
                   </div>
                 </StyledTableCell>
                 <StyledTableCell>Fone Bluetooth Premium</StyledTableCell>
                 <StyledTableCell>1 por giro (garantido)</StyledTableCell>
-                <StyledTableCell className="text-yellow-300 font-medium">Alto</StyledTableCell>
+                <StyledTableCell className="text-white font-medium">Alto</StyledTableCell>
               </StyledTableRow>
               <StyledTableRow>
                 <StyledTableCell>
                   <div>
-                    <div className="font-medium text-red-300">Cor Correta</div>
+                    <div className="font-medium text-white">Cor Correta</div>
                     <div className="text-xs text-white/60">Vermelho ou Preto (~48%)</div>
                   </div>
                 </StyledTableCell>
                 <StyledTableCell>Copo Betano Personalizado</StyledTableCell>
                 <StyledTableCell>~12 participantes/giro</StyledTableCell>
-                <StyledTableCell className="text-red-300 font-medium">Médio</StyledTableCell>
+                <StyledTableCell className="text-white font-medium">Médio</StyledTableCell>
               </StyledTableRow>
               <StyledTableRow>
                 <StyledTableCell>
                   <div>
-                    <div className="font-medium text-blue-300">Paridade Correta</div>
+                    <div className="font-medium text-white">Paridade Correta</div>
                     <div className="text-xs text-white/60">Par ou Ímpar (~48%)</div>
                   </div>
                 </StyledTableCell>
                 <StyledTableCell>Cordão de Celular</StyledTableCell>
                 <StyledTableCell>~8 participantes/giro</StyledTableCell>
-                <StyledTableCell className="text-blue-300 font-medium">Médio</StyledTableCell>
+                <StyledTableCell className="text-white font-medium">Médio</StyledTableCell>
               </StyledTableRow>
               <StyledTableRow>
                 <StyledTableCell>
                   <div>
-                    <div className="font-medium text-green-300">Participação</div>
+                    <div className="font-medium text-white">Participação</div>
                     <div className="text-xs text-white/60">Garantia de brinde</div>
                   </div>
                 </StyledTableCell>
                 <StyledTableCell>Chaveiro Exclusivo Betano</StyledTableCell>
                 <StyledTableCell>1 por telefone/dia</StyledTableCell>
-                <StyledTableCell className="text-green-300 font-medium">Lembrança</StyledTableCell>
+                <StyledTableCell className="text-white font-medium">Lembrança</StyledTableCell>
               </StyledTableRow>
             </StyledTableBody>
           </StyledTable>
-          <div className="mt-3 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
-            <p className="text-sm text-purple-200">
+          <div className="mt-3 glass-blur p-3">
+            <p className="text-sm text-white">
               <span className="font-medium">Estratégia:</span> Múltiplas formas de "ganhar" aumentam satisfação e reduzem frustração
             </p>
           </div>
@@ -369,7 +369,7 @@ export function BetanoTables() {
       </div>
 
       {/* Estoque de Brindes */}
-      <div className="card-container p-8">
+      <div className="glass-blur p-8">
         <div className="heading-medium font-sans mb-6">
           <AdvancedTextAnimation tag="h3" fontWeight="bold" type="slide" direction="up">
             Estoque de Brindes Planejado
@@ -389,72 +389,72 @@ export function BetanoTables() {
             <StyledTableRow>
               <StyledTableCell>
                 <div>
-                  <div className="font-medium text-yellow-300">Fone Bluetooth Premium</div>
+                  <div className="font-medium text-white">Fone Bluetooth Premium</div>
                   <div className="text-xs text-white/60">Prêmio maior - número exato</div>
                 </div>
               </StyledTableCell>
               <StyledTableCell>555 unidades</StyledTableCell>
               <StyledTableCell>72 por dia (1 por giro)</StyledTableCell>
-              <StyledTableCell className="text-yellow-300">7,7 dias</StyledTableCell>
+              <StyledTableCell className="text-white">7,7 dias</StyledTableCell>
             </StyledTableRow>
             <StyledTableRow>
               <StyledTableCell>
                 <div>
-                  <div className="font-medium text-red-300">Copo Personalizado</div>
+                  <div className="font-medium text-white">Copo Personalizado</div>
                   <div className="text-xs text-white/60">Acerto de cor (vermelho/preto)</div>
                 </div>
               </StyledTableCell>
               <StyledTableCell>1.660 unidades</StyledTableCell>
               <StyledTableCell>~216 por dia</StyledTableCell>
-              <StyledTableCell className="text-red-300">7,7 dias</StyledTableCell>
+              <StyledTableCell className="text-white">7,7 dias</StyledTableCell>
             </StyledTableRow>
             <StyledTableRow>
               <StyledTableCell>
                 <div>
-                  <div className="font-medium text-blue-300">Cordão de Celular</div>
+                  <div className="font-medium text-white">Cordão de Celular</div>
                   <div className="text-xs text-white/60">Acerto de paridade (par/ímpar)</div>
                 </div>
               </StyledTableCell>
               <StyledTableCell>1.110 unidades</StyledTableCell>
               <StyledTableCell>~144 por dia</StyledTableCell>
-              <StyledTableCell className="text-blue-300">7,7 dias</StyledTableCell>
+              <StyledTableCell className="text-white">7,7 dias</StyledTableCell>
             </StyledTableRow>
             <StyledTableRow>
               <StyledTableCell>
                 <div>
-                  <div className="font-medium text-green-300">Chaveiro Betano</div>
+                  <div className="font-medium text-white">Chaveiro Betano</div>
                   <div className="text-xs text-white/60">Brinde garantido de participação</div>
                 </div>
               </StyledTableCell>
               <StyledTableCell>15.000 unidades</StyledTableCell>
               <StyledTableCell>Até 1.700 por dia</StyledTableCell>
-              <StyledTableCell className="text-green-300">8,8 dias</StyledTableCell>
+              <StyledTableCell className="text-white">8,8 dias</StyledTableCell>
             </StyledTableRow>
-            <StyledTableRow className="bg-white/5">
+            <StyledTableRow className="glass-blur-subtle">
               <StyledTableCell>
                 <div>
-                  <div className="font-medium text-gray-300">Chaveiro Reserva</div>
+                  <div className="font-medium text-white">Chaveiro Reserva</div>
                   <div className="text-xs text-white/60">Estoque de segurança adicional</div>
                 </div>
               </StyledTableCell>
               <StyledTableCell>5.000 unidades</StyledTableCell>
               <StyledTableCell>Backup técnico</StyledTableCell>
-              <StyledTableCell className="text-gray-300">+2,9 dias</StyledTableCell>
+              <StyledTableCell className="text-white">+2,9 dias</StyledTableCell>
             </StyledTableRow>
           </StyledTableBody>
         </StyledTable>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-          <div className="p-4 bg-orange-500/10 rounded-lg border border-orange-500/20">
-            <h5 className="font-medium text-orange-200 mb-2">Planejamento Estratégico</h5>
-            <p className="text-sm text-orange-100">
+          <div className="glass-blur p-4">
+            <h5 className="font-medium text-white mb-2">Planejamento Estratégico</h5>
+            <p className="text-sm text-white/90">
               Estoque calculado para <span className="font-bold">7 dias de operação</span> com margem de segurança de 20% 
               nos itens principais e reserva técnica de chaveiros.
             </p>
           </div>
-          <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
-            <h5 className="font-medium text-green-200 mb-2">Garantia de Experiência</h5>
-            <p className="text-sm text-green-100">
+          <div className="glass-blur p-4">
+            <h5 className="font-medium text-white mb-2">Garantia de Experiência</h5>
+            <p className="text-sm text-white/90">
               <span className="font-bold">100% dos participantes</span> recebem pelo menos um brinde, 
               criando experiência positiva e lembrança duradoura da marca.
             </p>

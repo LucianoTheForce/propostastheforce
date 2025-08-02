@@ -5,7 +5,6 @@ interface BudgetItem {
   description: string
   quantity: number
   unitValue: number
-  billingType: 'Direto ao Cliente' | 'Faturamento Direto'
 }
 
 interface AIEditRequest {
@@ -56,7 +55,6 @@ Estrutura dos itens:
 - description: string (descrição do item)
 - quantity: number (quantidade)
 - unitValue: number (valor unitário em reais)
-- billingType: "Direto ao Cliente" ou "Faturamento Direto"
 
 IMPORTANTE: 
 - Mantenha sempre os mesmos IDs dos itens
@@ -149,10 +147,7 @@ Retorne os itens editados em formato JSON:`
           id: originalItem.id, // Always preserve original ID
           description: typeof editedItem.description === 'string' ? editedItem.description : originalItem.description,
           quantity: typeof editedItem.quantity === 'number' && editedItem.quantity > 0 ? editedItem.quantity : originalItem.quantity,
-          unitValue: typeof editedItem.unitValue === 'number' && editedItem.unitValue > 0 ? editedItem.unitValue : originalItem.unitValue,
-          billingType: (editedItem.billingType === 'Direto ao Cliente' || editedItem.billingType === 'Faturamento Direto') 
-            ? editedItem.billingType 
-            : originalItem.billingType
+          unitValue: typeof editedItem.unitValue === 'number' && editedItem.unitValue > 0 ? editedItem.unitValue : originalItem.unitValue
         }
         validatedItems.push(validatedItem)
       } else {

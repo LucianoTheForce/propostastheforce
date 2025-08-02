@@ -179,11 +179,6 @@ export const translations = {
         title: "Professional Team Operation",
         description: "Complete staffing solution: 1 general coordinator, 2 roaming promoters with tablets, 4 totem operators (1 per equipment), 2 prize distribution attendants, 1 cleaning assistant, and 1 civil firefighter. Full crowd control and participant journey management.",
         number: "05"
-      },
-      {
-        title: "Compliance & Legal Framework",
-        description: "Complete regulatory compliance including SPA/MF registration, SMUL permits, LGPD data protection terms, age verification (18+), and 1 participation per CPF daily limit. Zero legal risk operation.",
-        number: "06"
       }
     ],
     
@@ -252,7 +247,6 @@ export const translations = {
     
     termsConditions: [
       "The investment includes complete digital casino activation system and 7-day operation.",
-      "Setup timeline: 40 working days including SPA/MF registration, SMUL permits, and team training.",
       "Operation: 6 hours daily, 72 draws total, 5min 50s participant journey per cycle.",
       "Participation limited to 1 time per day per CPF with age verification (18+) and LGPD compliance.",
       "Complete system: JCDecaux integration (1h/day), LED booth (6h/day), 4 registration totems, prize counter.",
@@ -468,11 +462,6 @@ export const translations = {
         title: "Operação de Equipe Profissional",
         description: "Solução completa de pessoal: 1 coordenador geral, 2 promotores volantes com tablets, 4 operadores de totem (1 por equipamento), 2 atendentes de distribuição de prêmios, 1 auxiliar de limpeza e 1 bombeiro civil. Controle total de fluxo e gestão da jornada do participante.",
         number: "05"
-      },
-      {
-        title: "Compliance e Marco Legal",
-        description: "Conformidade regulatória completa incluindo registro SPA/MF, alvarás SMUL, termos de proteção de dados LGPD, verificação de idade (18+) e limite de 1 participação por CPF diária. Operação de risco legal zero.",
-        number: "06"
       }
     ],
     
@@ -541,7 +530,6 @@ export const translations = {
     
     termsConditions: [
       "O investimento inclui sistema completo de ativação de cassino digital e operação de 7 dias.",
-      "Prazo de setup: 40 dias úteis incluindo registro SPA/MF, alvarás SMUL e treinamento da equipe.",
       "Operação: 6 horas diárias, 72 sorteios totais, jornada do participante de 5min 50s por ciclo.",
       "Participação limitada a 1 vez por dia por CPF com verificação de idade (18+) e conformidade LGPD.",
       "Sistema completo: integração JCDecaux (1h/dia), estande LED (6h/dia), 4 totens cadastro, balcão prêmios.",
