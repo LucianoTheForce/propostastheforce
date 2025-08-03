@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { redisProposalOps } from '@/lib/redis'
 import { Proposal } from '@/lib/proposal-types'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   const clientSlug = 'betano'
   const projectSlug = 'estacao-se'
