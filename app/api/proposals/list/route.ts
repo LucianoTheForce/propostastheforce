@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { redisProposalOps } from '@/lib/redis';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const proposals = await redisProposalOps.getProposalsList();

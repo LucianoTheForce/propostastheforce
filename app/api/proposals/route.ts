@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redisProposalOps } from '@/lib/redis';
 import { Proposal, createProposalId, generateSlug } from '@/lib/proposal-types';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redisProposalOps } from '@/lib/redis';
 import { Proposal } from '@/lib/proposal-types';
 
+export const dynamic = 'force-dynamic';
+
 // Helper function to parse proposal ID
 function parseProposalId(id: string): { clientSlug: string; projectSlug: string } | null {
   const parts = id.split(':');
