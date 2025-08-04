@@ -27,10 +27,12 @@ export async function POST(
     const newProjectSlug = generateSlug(newProjectName);
     
     // Create a duplicate proposal with new ID
+    const newId = createProposalId(clientSlug, newProjectSlug);
     const duplicatedProposal = {
       ...original,
       metadata: {
         ...original.metadata,
+        id: newId,
         projectName: newProjectName,
         projectSlug: newProjectSlug,
         status: 'draft' as const, // Reset status to draft

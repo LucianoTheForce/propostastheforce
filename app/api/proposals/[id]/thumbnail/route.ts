@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
 import { redisProposalOps } from '@/lib/redis';
+import { generateProposalThumbnail, generateScreenshotThumbnail } from '@/lib/generate-thumbnail';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,8 +8,6 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  let browser;
-  
   try {
     const proposalId = params.id;
     const [clientSlug, projectSlug] = proposalId.split(':');
@@ -23,50 +21,41 @@ export async function POST(
       }, { status: 404 });
     }
 
-    // Get the base URL from the request
-    const url = new URL(request.url);
-    const baseUrl = `${url.protocol}//${url.host}`;
-    const previewUrl = `${baseUrl}/preview/${clientSlug}/${projectSlug}`;
-
-    // Launch Puppeteer
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-
-    const page = await browser.newPage();
+    // For Betano proposal, use screenshot of the main Three.js page
+    let thumbnailDataUrl: string;
     
-    // Set viewport for consistent screenshots
-    await page.setViewport({
-      width: 1280,
-      height: 720,
-      deviceScaleFactor: 2
-    });
-
-    // Navigate to the preview page
-    await page.goto(previewUrl, {
-      waitUntil: 'networkidle0',
-      timeout: 30000
-    });
-
-    // Wait for the hero section to render
-    await page.waitForSelector('.hero-section', {
-      timeout: 10000
-    });
-
-    // Take screenshot of just the hero section
-    const heroElement = await page.$('.hero-section');
-    if (!heroElement) {
-      throw new Error('Hero section not found');
+    if (proposalId === 'betano:estacao-se') {
+      // Generate screenshot thumbnail from the main landing page with Three.js
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'http://localhost:3000';
+      
+      try {
+        const screenshot = await generateScreenshotThumbnail(`${baseUrl}/`);
+        if (screenshot) {
+          thumbnailDataUrl = screenshot;
+        } else {
+          // Fallback to SVG if screenshot returned null
+          thumbnailDataUrl = generateProposalThumbnail(
+            proposal.metadata.clientName,
+            proposal.metadata.projectName
+          );
+        }
+      } catch (screenshotError) {
+        console.error('Screenshot generation failed, falling back to SVG:', screenshotError);
+        // Fallback to SVG thumbnail if screenshot fails
+        thumbnailDataUrl = generateProposalThumbnail(
+          proposal.metadata.clientName,
+          proposal.metadata.projectName
+        );
+      }
+    } else {
+      // Generate SVG thumbnail for other proposals
+      thumbnailDataUrl = generateProposalThumbnail(
+        proposal.metadata.clientName,
+        proposal.metadata.projectName
+      );
     }
-
-    const screenshot = await heroElement.screenshot({
-      encoding: 'base64',
-      type: 'png'
-    });
-
-    // Store the thumbnail as a data URL
-    const thumbnailDataUrl = `data:image/png;base64,${screenshot}`;
     
     // Save thumbnail to Redis
     const success = await redisProposalOps.saveProposalThumbnail(
@@ -93,10 +82,6 @@ export async function POST(
       success: false,
       error: 'Failed to generate thumbnail'
     }, { status: 500 });
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
   }
 }
 

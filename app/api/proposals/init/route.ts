@@ -19,7 +19,7 @@ export async function GET() {
       status: 'draft',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      thumbnail: '',
+      thumbnail: 'data:image/svg+xml;base64,' + Buffer.from(`<svg width="400" height="225" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="225" fill="#1e40af"/><text x="200" y="100" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">BETANO</text><text x="200" y="140" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="#93bbff">Estação SE</text></svg>`).toString('base64'),
       tags: ['sports-betting', 'experiential', 'sergipe']
     },
     content: {

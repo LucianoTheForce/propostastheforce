@@ -33,12 +33,12 @@ export default function ProposalsDashboard() {
   };
 
   const filteredProposals = proposals.filter(proposal => {
-    const matchesSearch = 
-      proposal.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      proposal.projectName.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch =
+      proposal.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      proposal.projectName?.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesStatus = filterStatus === 'all' || proposal.status === filterStatus;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -65,19 +65,17 @@ export default function ProposalsDashboard() {
   };
 
   const duplicateProposal = async (e: React.MouseEvent, proposalId: string) => {
-    e.preventDefault(); // Prevent navigation to the proposal
+    e.preventDefault();
     e.stopPropagation();
-    
+
     try {
       const response = await fetch(`/api/proposals/${proposalId}/duplicate`, {
         method: 'POST'
       });
-      
+
       const data = await response.json();
       if (data.success) {
-        // Refresh the proposals list
         fetchProposals();
-        // Optionally navigate to the new proposal
         router.push(`/proposals/${data.clientSlug}/${data.projectSlug}`);
       } else {
         alert('Failed to duplicate proposal');
@@ -92,8 +90,7 @@ export default function ProposalsDashboard() {
     try {
       const response = await fetch('/api/proposals/export');
       const blob = await response.blob();
-      
-      // Create download link
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -116,13 +113,13 @@ export default function ProposalsDashboard() {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      
+
       const response = await fetch('/api/proposals/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      
+
       const result = await response.json();
       if (result.success) {
         alert(`Import completed: ${result.imported} imported, ${result.failed} failed`);
@@ -135,7 +132,6 @@ export default function ProposalsDashboard() {
       alert('Failed to import proposals - invalid file format');
     } finally {
       setImporting(false);
-      // Reset the input
       event.target.value = '';
     }
   };
@@ -157,7 +153,7 @@ export default function ProposalsDashboard() {
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </button>
-              
+
               <label className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer">
                 <Upload className="h-4 w-4 mr-2" />
                 {importing ? 'Importing...' : 'Import'}
@@ -252,13 +248,13 @@ export default function ProposalsDashboard() {
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
                       <div className="text-center">
                         <div className="text-4xl font-bold text-gray-400 mb-1">
-                          {proposal.clientName.charAt(0).toUpperCase()}
+                          {proposal.clientName?.charAt(0).toUpperCase()}
                         </div>
                         <div className="text-xs text-gray-400">No preview</div>
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Status Badge and Duplicate Button */}
                   <div className="absolute top-2 right-2 flex items-center gap-2">
                     <button
@@ -280,7 +276,7 @@ export default function ProposalsDashboard() {
                     {proposal.clientName}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">{proposal.projectName}</p>
-                  
+
                   <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
                     <div className="flex items-center">
                       <Calendar className="h-3 w-3 mr-1" />

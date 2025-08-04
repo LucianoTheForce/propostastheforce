@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Proposal, LocalizedText } from '@/lib/proposal-types';
 import { Globe } from 'lucide-react';
+import { InteractiveLogoHero } from '@/components/interactive-logo-hero';
 
 export default function ProposalPreview() {
   const params = useParams();
@@ -108,18 +109,50 @@ export default function ProposalPreview() {
       {/* Hero Section */}
       <section className="hero-section relative bg-gradient-to-b from-gray-900 to-gray-800 text-white">
         <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold mb-4">{getText(proposal.content.hero.title)}</h1>
-            <p className="text-xl text-gray-300 mb-8">{getText(proposal.content.hero.subtitle)}</p>
-            <div className="inline-flex items-center space-x-4">
-              <h2 className="text-3xl font-semibold">{getText(proposal.content.hero.proposalTitle)}</h2>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(proposal.metadata.status)}`}>
-                {getStatusText(proposal.metadata.status)}
-              </span>
+        
+        {/* Enhanced Hero for Betano Proposal with Three.js InteractiveLogoHero */}
+        {proposalId === 'betano:estacao-se' ? (
+          <div className="relative">
+            {/* Three.js Interactive Logo Hero Section */}
+            <div className="relative h-screen flex items-center justify-center">
+              <InteractiveLogoHero className="absolute inset-0 w-full h-full" />
+              
+              {/* Content overlay */}
+              <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-8 mx-auto max-w-4xl">
+                  <h1 className="text-6xl font-bold mb-6 text-white drop-shadow-lg">
+                    {getText(proposal.content.hero.title)}
+                  </h1>
+                  <p className="text-2xl text-gray-200 mb-8 drop-shadow-md">
+                    {getText(proposal.content.hero.subtitle)}
+                  </p>
+                  <div className="inline-flex items-center space-x-4">
+                    <h2 className="text-4xl font-semibold text-white drop-shadow-lg">
+                      {getText(proposal.content.hero.proposalTitle)}
+                    </h2>
+                    <span className={`px-4 py-2 rounded-full text-lg font-medium backdrop-blur-sm ${getStatusColor(proposal.metadata.status)}`}>
+                      {getStatusText(proposal.metadata.status)}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          /* Standard Hero for other proposals */
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+            <div className="text-center">
+              <h1 className="text-5xl font-bold mb-4">{getText(proposal.content.hero.title)}</h1>
+              <p className="text-xl text-gray-300 mb-8">{getText(proposal.content.hero.subtitle)}</p>
+              <div className="inline-flex items-center space-x-4">
+                <h2 className="text-3xl font-semibold">{getText(proposal.content.hero.proposalTitle)}</h2>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(proposal.metadata.status)}`}>
+                  {getStatusText(proposal.metadata.status)}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Company Information */}
