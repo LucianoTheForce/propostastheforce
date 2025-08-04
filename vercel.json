@@ -1,0 +1,15 @@
+{
+  "functions": {
+    "app/api/**/*.ts": {
+      "runtime": "@vercel/node@20.x"
+    }
+  },
+  "build": {
+    "env": {
+      "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true"
+    }
+  },
+  "env": {
+    "PUPPETEER_EXECUTABLE_PATH": "/usr/bin/google-chrome-stable"
+  }
+}
